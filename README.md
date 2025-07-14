@@ -1,176 +1,215 @@
-# CO1020_Assembly_Project
-=======
-# ARM32 Assembly Command-Line Shell
+# 🛠️ CO1020\_Assembly\_Project
 
-## Project Information
+## 🖥️ ARM32 Assembly Command-Line Shell
 
-**Course**: CO1020 - Computer Systems Programming  
-**Department**: Computer Engineering, University of Peradeniya  
-**Project Type**: Group Project  
-**Duration**: 2 Weeks  
-**Language**: ARM32 Assembly  
+---
 
-## Group Details
+## 📘 Project Information
 
-**Group Number**: 36
+* **Course**: CO1020 - Computer Systems Programming
+* **Department**: Computer Engineering, University of Peradeniya
+* **Project Type**: Group Project
+* **Duration**: 2 Weeks
+* **Language**: ARM32 Assembly
 
-**Members**:
-- D.M.N.N. Bandara (E/22/044)
-- K.B.A.D.G.C. Kapurubandara (E/22/180)
+---
 
-## Project Specifications
+## 👥 Group Details
 
-### Objective
-Build a minimal interactive command-line shell in ARM32 assembly language that can handle basic commands and custom operations.
+* **Group Number**: 36
+* **Members**:
 
-### Requirements
-- Single `shell.s` file implementation
-- Proper memory section organization (`.data`, `.bss`, `.text`)
-- Continuous shell loop with user input handling
-- Basic command set implementation
-- Two custom commands with complexity beyond basic operations
-- Proper stack usage and register preservation
+  * 👤 D.M.N.N. Bandara (E/22/044)
+  * 👤 K.B.A.D.G.C. Kapurubandara (E/22/180)
 
-## Implementation Details
+---
 
-### Code Architecture
+## 🎯 Project Objective
 
-#### Memory Sections
-- **`.data` Section**: Contains all string literals, prompts, messages, and command definitions
-- **`.bss` Section**: Uninitialized memory buffers for runtime data storage (input_buffer, token_buffer, reverse_buffer)
-- **`.text` Section**: Executable code with main entry point and function definitions
+Build a minimal **interactive command-line shell** in ARM32 assembly that can handle basic commands and complex custom operations using direct memory and system call manipulation.
 
-#### Core Functions
+---
 
-##### System Interface Functions
-- `print_string`: Outputs text to stdout using system calls (sys_write)
-- `read_input`: Reads user input from stdin using system calls (sys_read)
-- `strlen`: Calculates string length by iterating through characters
-- `remove_newline`: Removes newline and carriage return characters from input
+## ✅ Requirements
 
-##### String Processing Functions
-- `strcmp`: Compares two strings for equality using byte-by-byte comparison
-- `extract_token`: Tokenizes input string for command parsing with bounds checking
-- `parse_command`: Main command parser and dispatcher with special handling for complex commands
-- `check_reverse_command`: Direct string matching for reverse command to avoid parsing issues
+* 📝 Single `shell.s` file
+* 📦 Proper memory section usage: `.data`, `.bss`, `.text`
+* 🔁 Continuous shell loop with user input
+* 🧠 Basic command set implementation
+* 🧩 Two custom commands (beyond simple operations)
+* 📐 Stack and register management with correct conventions
 
-##### Command Handler Functions
-- `cmd_hello_handler`: Handles hello command
-- `cmd_help_handler`: Displays available commands
-- `cmd_exit_handler`: Terminates shell using sys_exit system call
-- `cmd_clear_handler`: Clears screen using ANSI escape sequences
-- `cmd_reverse_handler`: Advanced text reversal implementation
-- `cmd_echo_handler`: Echo command with argument processing
+---
 
-#### Stack Management
-- All functions properly save and restore registers using stack operations
-- `lr` register preservation for function returns
-- Temporary register management across function calls using push/pop operations
-- Proper stack alignment and cleanup
+## 🧱 Implementation Details
 
-### Implemented Features
+### 🗂️ Code Architecture
 
-#### Basic Commands
-| Command | Function | Description |
-|---------|----------|-------------|
-| `hello` | `cmd_hello_handler` | Prints "Hello World!" |
-| `help` | `cmd_help_handler` | Lists all available commands |
-| `exit` | `cmd_exit_handler` | Terminates the shell |
-| `clear` | `cmd_clear_handler` | Clears the terminal screen |
+#### 📍 Memory Sections
 
-#### Custom Commands
-| Command | Function | Description |
-|---------|----------|-------------|
-| `reverse` | `cmd_reverse_handler` | Reverses input text using string manipulation |
-| `echo` | `cmd_echo_handler` | Echoes user input back to terminal |
+* **`.data`**: String literals, prompts, messages, command names
+* **`.bss`**: Runtime data buffers (`input_buffer`, `token_buffer`, `reverse_buffer`)
+* **`.text`**: Main shell logic and function implementations
 
-#### Reverse Command Features
-- **Syntax**: `reverse <text>`
-- **Example**: `reverse Hello World!` → Reversed: !dlroW olleH
-- **Processing**: 
-  - Finds start and end of input text
-  - Copies characters in reverse order to dedicated buffer
-  - Handles empty input gracefully
-  - Prevents buffer overflow with bounds checking
+#### 🔧 Core Functions
 
-#### Echo Command Features
-- **Syntax**: `echo <message>`
-- **Example**: `echo Hello Assembly!` → Echo: Hello Assembly!
-- **Processing**: 
-  - Skips command name and leading spaces
-  - Handles multiple words and special characters
-  - Preserves original spacing in output
+##### 🔌 System Interface
 
-### Technical Implementation
+* `print_string`: Uses `sys_write` for output
+* `read_input`: Reads input with `sys_read`
+* `strlen`: Finds length of strings
+* `remove_newline`: Trims newline/CR from inputs
 
-#### Input Processing
-- 256-byte input buffer allocation in `.bss` section
-- Newline and carriage return character removal
-- Bounds checking to prevent buffer overflow
-- Safe string termination with null characters
+##### 🧹 String Utilities
 
-#### Command Parsing
-- **Two-tier parsing system**:
-  1. Direct string matching for complex commands (reverse, echo)
-  2. Token-based parsing for simple commands (hello, help, exit, clear)
-- String comparison-based command matching using `strcmp`
-- Conditional branching for command routing
-- Unknown command handling with helpful error messages
+* `strcmp`: Compares two strings
+* `extract_token`: Parses input into command/arguments
+* `parse_command`: Routes commands appropriately
+* `check_reverse_command`: Direct match for `reverse` command
 
-#### String Manipulation
-- **Reverse Algorithm**:
-  - Linear scan to find string boundaries
-  - Backward iteration through source string
-  - Forward writing to destination buffer
-  - Character-by-character copying with bounds checking
-- **Memory Safety**: All string operations include buffer overflow protection
+##### ⚙️ Command Handlers
 
-#### Error Handling
-- Invalid command recognition with helpful messages
-- Empty input handling
-- Buffer overflow prevention
-- Graceful error message display
-- Safe termination on system call failures
+* `cmd_hello_handler`: Prints "Hello World!"
+* `cmd_help_handler`: Lists available commands
+* `cmd_exit_handler`: Exits shell
+* `cmd_clear_handler`: Clears screen
+* `cmd_reverse_handler`: Reverses input string
+* `cmd_echo_handler`: Echoes back message
 
-#### Memory Management
-- Static buffer allocation in `.bss` section for predictable memory usage
-- Proper memory addressing with load effective address operations
-- Buffer reuse across command executions
-- No dynamic memory allocation (embedded-friendly approach)
+#### 📚 Stack & Register Usage
 
-### System Calls Used
-- **sys_write (4)**: For output operations to stdout
-- **sys_read (3)**: For input operations from stdin  
-- **sys_exit (1)**: For program termination
+* All functions **push/pop** necessary registers
+* `lr` saved/restored properly
+* Temporary registers (r4–r8) managed correctly
+* Stack pointer (`sp`) maintained throughout
 
-### Register Usage
-- **r0-r3**: Parameter passing and return values (ARM calling convention)
-- **r4-r8**: Local variables in complex functions (callee-saved)
-- **r7**: System call number for Linux system calls
-- **lr**: Link register for function returns
-- **sp**: Stack pointer for register preservation
+---
 
-### Assembly Techniques Demonstrated
-- **Addressing Modes**: Immediate, register, and memory addressing
-- **Conditional Execution**: Branch instructions with condition codes
-- **String Operations**: Byte-level string manipulation
-- **Loop Constructs**: Counter-controlled and condition-controlled loops
-- **Function Calls**: Proper linkage and parameter passing
-- **System Integration**: Linux system call interface
+## 🧪 Implemented Features
 
-## Build and Execution
+### 🧾 Basic Commands
 
-### Compilation
+| 🔤 Command | 🧠 Function         | 📄 Description               |
+| ---------- | ------------------- | ---------------------------- |
+| `hello`    | `cmd_hello_handler` | Prints "Hello World!"        |
+| `help`     | `cmd_help_handler`  | Shows all supported commands |
+| `exit`     | `cmd_exit_handler`  | Exits the shell              |
+| `clear`    | `cmd_clear_handler` | Clears the screen            |
+
+### 💡 Custom Commands
+
+| 🔤 Command | 🧠 Function           | 📄 Description           |
+| ---------- | --------------------- | ------------------------ |
+| `reverse`  | `cmd_reverse_handler` | Reverses input string    |
+| `echo`     | `cmd_echo_handler`    | Echoes the input message |
+
+#### 🔄 Reverse Command
+
+* **Usage**: `reverse <text>`
+* **Example**: `reverse Hello!` → `!olleH`
+* Handles empty strings and overflow cases
+
+#### 🗣️ Echo Command
+
+* **Usage**: `echo <text>`
+* **Example**: `echo Hello ARM!` → `Hello ARM!`
+* Preserves input format and spacing
+
+---
+
+## ⚙️ Technical Implementation
+
+### 🧾 Input Processing
+
+* 256-byte buffer in `.bss`
+* Removes newline/CR characters
+* Null-terminated strings
+* Overflow-safe reads
+
+### 🧠 Command Parsing
+
+* Two-tier system:
+
+  1. Direct string match for `reverse`, `echo`
+  2. Token-based for others
+* Uses `strcmp` and conditional branching
+* Prints error for unknown commands
+
+### 🔣 String Manipulation
+
+* **Reverse logic**:
+
+  * Locates bounds of string
+  * Iterates backward from end to start
+  * Writes to separate buffer
+  * Checks for overflow
+
+### ⚠️ Error Handling
+
+* Invalid command messages
+* Empty input detection
+* Buffer protection
+* Fails gracefully on system call errors
+
+### 🧠 Memory Management
+
+* Static buffers = predictable usage
+* `lea` used for effective addressing
+* No heap/dynamic allocation
+
+---
+
+## 🛠️ System Calls Used
+
+| 🧾 System Call | 🆔 Number | 🔧 Purpose        |
+| -------------- | --------- | ----------------- |
+| `sys_write`    | `4`       | Output to stdout  |
+| `sys_read`     | `3`       | Input from stdin  |
+| `sys_exit`     | `1`       | Terminate program |
+
+---
+
+## 📐 Register Usage Summary
+
+| Register  | Usage                          |
+| --------- | ------------------------------ |
+| `r0`–`r3` | Arguments & return values      |
+| `r4`–`r8` | Local variables (callee-saved) |
+| `r7`      | System call identifier         |
+| `lr`      | Return address for functions   |
+| `sp`      | Stack pointer                  |
+
+---
+
+## 🔬 Assembly Concepts Demonstrated
+
+* 📦 Addressing modes (immediate, register, memory)
+* 🧠 Condition codes and branching
+* 🔁 Looping and iteration
+* 🧵 String manipulation at byte-level
+* 🔧 Manual function call linkage
+* 💻 OS-level system integration via syscall interface
+
+---
+
+## 🏗️ Build and Run Instructions
+
+### 🔨 Compilation
+
 ```bash
 arm-linux-gnueabi-gcc -Wall shell.s -o shell
 ```
 
-### Execution
+### ▶️ Execution
+
 ```bash
 qemu-arm -L /usr/arm-linux-gnueabi shell
 ```
 
-### Usage Examples
+---
+
+## 💻 Usage Examples
+
 ```
 shell> hello
 Hello World!
@@ -197,29 +236,35 @@ shell> exit
 Goodbye!
 ```
 
-## Individual Contributions
+---
 
-### D.M.N.N. Bandara (E/22/044)
-- 
+## 👨‍💻 Individual Contributions
 
+### ✍️ D.M.N.N. Bandara (E/22/044)
 
-### K.B.A.D.G.C. Kapurubandara (E/22/180)
-- 
+* *\[To be completed]*
 
-## Project Challenges and Solutions
+### ✍️ K.B.A.D.G.C. Kapurubandara (E/22/180)
 
-### Challenge 1: Command Parsing Complexity
-**Problem**: Initial implementation had complex token-based parsing that caused segmentation faults with multi-word commands.
+* *\[To be completed]*
 
-**Solution**: Implemented a two-tier parsing system with direct string matching for complex commands and simplified token extraction for basic commands.
+---
 
-### Challenge 2: Memory Management
-**Problem**: Buffer overflow issues during string manipulation operations.
+## 🚧 Project Challenges and Solutions
 
-**Solution**: Added comprehensive bounds checking throughout all string operations and implemented safe buffer termination.
+### ⚠️ 1. Command Parsing Complexity
 
-### Challenge 3: Register Conflicts
-**Problem**: ARM32 multiply instruction register constraints causing compilation errors.
+**Issue**: Token-based parsing broke with multi-word inputs
+**Fix**: Switched to two-tier system (direct + token parsing)
 
-**Solution**: Used intermediate registers and proper register allocation to satisfy ARM32 instruction requirements.
+### 🧠 2. Memory Management
+
+**Issue**: Buffer overflows during string handling
+**Fix**: Bounds checking and null termination everywhere
+
+### 🔁 3. Register Conflicts
+
+**Issue**: `mul` instruction register constraints
+**Fix**: Careful register allocation and reuse
+
 
