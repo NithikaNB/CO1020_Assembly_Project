@@ -26,7 +26,7 @@
 
 ## 🎯 Project Objective
 
-Build a minimal **interactive command-line shell** in ARM32 assembly that can handle basic commands and complex custom operations using direct memory and system call manipulation.
+Build a minimal **interactive command-line shell** in ARM32 assembly that can handle basic commands and complex custom operations using direct memory and system call manipulation, demonstrating advanced programming concepts including cryptography and data analysis.
 
 ---
 
@@ -36,7 +36,7 @@ Build a minimal **interactive command-line shell** in ARM32 assembly that can ha
 * 📦 Proper memory section usage: `.data`, `.bss`, `.text`
 * 🔁 Continuous shell loop with user input
 * 🧠 Basic command set implementation
-* 🧩 Two custom commands (beyond simple operations)
+* 🧩 Two advanced custom commands demonstrating complex algorithms
 * 📐 Stack and register management with correct conventions
 
 ---
@@ -47,8 +47,8 @@ Build a minimal **interactive command-line shell** in ARM32 assembly that can ha
 
 #### 📍 Memory Sections
 
-* **`.data`**: String literals, prompts, messages, command names
-* **`.bss`**: Runtime data buffers (`input_buffer`, `token_buffer`, `reverse_buffer`)
+* **`.data`**: String literals, prompts, messages, command names, help text
+* **`.bss`**: Runtime data buffers (`input_buffer`, `token_buffer`, `cipher_buffer`, `freq_counts`, `freq_buffer`)
 * **`.text`**: Main shell logic and function implementations
 
 #### 🔧 Core Functions
@@ -57,31 +57,36 @@ Build a minimal **interactive command-line shell** in ARM32 assembly that can ha
 
 * `print_string`: Uses `sys_write` for output
 * `read_input`: Reads input with `sys_read`
-* `strlen`: Finds length of strings
+* `strlen`: Calculates string length
 * `remove_newline`: Trims newline/CR from inputs
 
 ##### 🧹 String Utilities
 
-* `strcmp`: Compares two strings
-* `extract_token`: Parses input into command/arguments
-* `parse_command`: Routes commands appropriately
-* `check_reverse_command`: Direct match for `reverse` command
+* `strcmp`: Compares two strings for equality
+* `extract_token`: Parses input into command/arguments with bounds checking
+* `parse_command`: Routes commands to appropriate handlers
 
 ##### ⚙️ Command Handlers
 
 * `cmd_hello_handler`: Prints "Hello World!"
-* `cmd_help_handler`: Lists available commands
-* `cmd_exit_handler`: Exits shell
-* `cmd_clear_handler`: Clears screen
-* `cmd_reverse_handler`: Reverses input string
-* `cmd_echo_handler`: Echoes back message
+* `cmd_help_handler`: Lists available commands with descriptions
+* `cmd_exit_handler`: Exits shell gracefully
+* `cmd_clear_handler`: Clears screen using ANSI escape sequences
+* `cmd_cipher_handler`: Caesar cipher encryption implementation
+* `cmd_freq_handler`: Character frequency analysis
+
+##### 🔐 Advanced Algorithm Support
+
+* `simple_parse_shift_number`: Parses decimal shift values for cipher
+* `apply_caesar_cipher`: Core encryption logic with alphabet wraparound
+* Character frequency counting with array operations
 
 #### 📚 Stack & Register Usage
 
 * All functions **push/pop** necessary registers
-* `lr` saved/restored properly
+* `lr` saved/restored properly for nested function calls
 * Temporary registers (r4–r8) managed correctly
-* Stack pointer (`sp`) maintained throughout
+* Stack pointer (`sp`) maintained throughout execution
 
 ---
 
@@ -89,31 +94,41 @@ Build a minimal **interactive command-line shell** in ARM32 assembly that can ha
 
 ### 🧾 Basic Commands
 
-| 🔤 Command | 🧠 Function         | 📄 Description               |
-| ---------- | ------------------- | ---------------------------- |
-| `hello`    | `cmd_hello_handler` | Prints "Hello World!"        |
-| `help`     | `cmd_help_handler`  | Shows all supported commands |
-| `exit`     | `cmd_exit_handler`  | Exits the shell              |
-| `clear`    | `cmd_clear_handler` | Clears the screen            |
+| 🔤 Command | 🧠 Function         | 📄 Description                    |
+| ---------- | ------------------- | --------------------------------- |
+| `hello`    | `cmd_hello_handler` | Prints "Hello World!"             |
+| `help`     | `cmd_help_handler`  | Shows all supported commands      |
+| `exit`     | `cmd_exit_handler`  | Exits the shell                   |
+| `clear`    | `cmd_clear_handler` | Clears the screen                 |
 
-### 💡 Custom Commands
+### 💡 Advanced Custom Commands
 
-| 🔤 Command | 🧠 Function           | 📄 Description           |
-| ---------- | --------------------- | ------------------------ |
-| `reverse`  | `cmd_reverse_handler` | Reverses input string    |
-| `echo`     | `cmd_echo_handler`    | Echoes the input message |
+| 🔤 Command | 🧠 Function           | 📄 Description                           |
+| ---------- | --------------------- | ---------------------------------------- |
+| `cipher`   | `cmd_cipher_handler`  | Caesar cipher encryption                 |
+| `freq`     | `cmd_freq_handler`    | Character frequency analysis             |
 
-#### 🔄 Reverse Command
+#### 🔐 Caesar Cipher Command
 
-* **Usage**: `reverse <text>`
-* **Example**: `reverse Hello!` → `!olleH`
-* Handles empty strings and overflow cases
+* **Usage**: `cipher <text> <shift>`
+* **Example**: `cipher hello 3` → `khoor`
+* **Features**:
+  * Preserves case (uppercase/lowercase)
+  * Handles alphabet wraparound (z+1 = a)
+  * Non-alphabetic characters remain unchanged
+  * Supports shift values 0-25
+  * Input validation and error handling
 
-#### 🗣️ Echo Command
+#### 📊 Character Frequency Analysis
 
-* **Usage**: `echo <text>`
-* **Example**: `echo Hello ARM!` → `Hello ARM!`
-* Preserves input format and spacing
+* **Usage**: `freq <text>`
+* **Example**: `freq hello` → `'h':1 'e':1 'l':2 'o':1`
+* **Features**:
+  * Counts printable ASCII characters (32-126)
+  * Displays results in format `'char':count`
+  * Handles multi-character counting efficiently
+  * Array-based frequency storage
+  * Formatted output with proper spacing
 
 ---
 
@@ -121,74 +136,83 @@ Build a minimal **interactive command-line shell** in ARM32 assembly that can ha
 
 ### 🧾 Input Processing
 
-* 256-byte buffer in `.bss`
-* Removes newline/CR characters
-* Null-terminated strings
-* Overflow-safe reads
+* 256-byte buffer in `.bss` section
+* Robust newline/CR character removal
+* Null-terminated string handling
+* Overflow-safe read operations
 
 ### 🧠 Command Parsing
 
-* Two-tier system:
+* Token-based command extraction
+* String comparison using custom `strcmp`
+* Argument parsing for complex commands
+* Error handling for unknown commands
 
-  1. Direct string match for `reverse`, `echo`
-  2. Token-based for others
-* Uses `strcmp` and conditional branching
-* Prints error for unknown commands
+### 🔣 Advanced String Manipulation
 
-### 🔣 String Manipulation
+* **Caesar Cipher Logic**:
+  * Character classification (uppercase/lowercase/other)
+  * Modular arithmetic for alphabet wraparound
+  * Case preservation during transformation
+  * Bounds checking for shift values
 
-* **Reverse logic**:
-
-  * Locates bounds of string
-  * Iterates backward from end to start
-  * Writes to separate buffer
-  * Checks for overflow
+* **Frequency Analysis**:
+  * Array initialization and clearing
+  * Character-to-index mapping
+  * Accumulator-based counting
+  * Formatted output generation
 
 ### ⚠️ Error Handling
 
-* Invalid command messages
-* Empty input detection
-* Buffer protection
-* Fails gracefully on system call errors
+* Invalid command messages with help suggestions
+* Input validation for cipher shift values
+* Empty input detection and graceful handling
+* Buffer overflow protection
+* System call error detection
 
 ### 🧠 Memory Management
 
-* Static buffers = predictable usage
-* `lea` used for effective addressing
-* No heap/dynamic allocation
+* Static buffer allocation for predictable usage
+* Efficient addressing modes
+* No dynamic memory allocation
+* Safe array bounds checking
 
 ---
 
 ## 🛠️ System Calls Used
 
-| 🧾 System Call | 🆔 Number | 🔧 Purpose        |
-| -------------- | --------- | ----------------- |
-| `sys_write`    | `4`       | Output to stdout  |
-| `sys_read`     | `3`       | Input from stdin  |
-| `sys_exit`     | `1`       | Terminate program |
+| 🧾 System Call | 🆔 Number | 🔧 Purpose                    |
+| -------------- | --------- | ----------------------------- |
+| `sys_write`    | `4`       | Output to stdout              |
+| `sys_read`     | `3`       | Input from stdin              |
+| `sys_exit`     | `1`       | Terminate program gracefully  |
 
 ---
 
 ## 📐 Register Usage Summary
 
-| Register  | Usage                          |
-| --------- | ------------------------------ |
-| `r0`–`r3` | Arguments & return values      |
-| `r4`–`r8` | Local variables (callee-saved) |
-| `r7`      | System call identifier         |
-| `lr`      | Return address for functions   |
-| `sp`      | Stack pointer                  |
+| Register  | Usage                                    |
+| --------- | ---------------------------------------- |
+| `r0`–`r3` | Arguments, return values, syscall params |
+| `r4`–`r8` | Local variables and loop counters        |
+| `r7`      | System call identifier                   |
+| `lr`      | Return address for function calls        |
+| `sp`      | Stack pointer maintenance                |
 
 ---
 
 ## 🔬 Assembly Concepts Demonstrated
 
-* 📦 Addressing modes (immediate, register, memory)
-* 🧠 Condition codes and branching
-* 🔁 Looping and iteration
-* 🧵 String manipulation at byte-level
-* 🔧 Manual function call linkage
-* 💻 OS-level system integration via syscall interface
+* 📦 Complex addressing modes and memory operations
+* 🧠 Conditional execution and branching logic
+* 🔁 Nested loops and array processing
+* 🧵 Advanced string manipulation algorithms
+* 🔢 Mathematical operations (modular arithmetic)
+* 🎭 Character classification and transformation
+* 🔧 Robust function call linkage and parameter passing
+* 💻 System-level programming with direct syscalls
+* 📊 Data structure manipulation (arrays, buffers)
+* 🛡️ Input validation and bounds checking
 
 ---
 
@@ -214,11 +238,20 @@ qemu-arm -L /usr/arm-linux-gnueabi shell
 shell> hello
 Hello World!
 
-shell> reverse Programming is fun!
-Reversed: !nuf si gnimmargorP
+shell> cipher hello 3
+Encrypted: khoor
 
-shell> echo Welcome to our ARM32 shell!
-Echo: Welcome to our ARM32 shell!
+shell> cipher ABC 1
+Encrypted: BCD
+
+shell> freq hello world
+Frequency: 'h':1 'e':1 'l':3 'o':2 ' ':1 'w':1 'r':1 'd':1 
+
+shell> cipher "Meet me at dawn" 13
+Encrypted: Zrrg zr ng qnja
+
+shell> freq Programming
+Frequency: 'P':1 'r':2 'o':1 'g':2 'a':1 'm':2 'i':1 'n':1 
 
 shell> help
 Available commands:
@@ -226,8 +259,8 @@ Available commands:
   help - Lists all commands
   exit - Terminates the shell
   clear - Clears the screen
-  reverse - Reverses your text
-  echo - Echo back your message
+  cipher - Caesar cipher encryption
+  freq - Character frequency analysis
 
 shell> clear
 [screen clears]
@@ -238,33 +271,44 @@ Goodbye!
 
 ---
 
-## 👨‍💻 Individual Contributions
+## 🚧 Project Challenges and Solutions
 
-### ✍️ D.M.N.N. Bandara (E/22/044)
+### ⚠️ 1. Complex Command Parsing
 
-* *\[To be completed]*
+**Issue**: Parsing commands with multiple arguments (text + shift value)
+**Solution**: Implemented sophisticated token extraction with last-space detection for separating text from numeric parameters
 
-### ✍️ K.B.A.D.G.C. Kapurubandara (E/22/180)
+### 🔐 2. Caesar Cipher Implementation
 
-* *\[To be completed]*
+**Issue**: Maintaining case sensitivity and handling alphabet wraparound
+**Solution**: Separate processing paths for uppercase/lowercase with modular arithmetic for wraparound
+
+### 📊 3. Frequency Analysis Optimization
+
+**Issue**: Efficient character counting and formatted output
+**Solution**: Array-based counting with ASCII-to-index mapping and custom formatting routines
+
+### 🧠 4. Memory Buffer Management
+
+**Issue**: Multiple buffers for different operations without conflicts
+**Solution**: Dedicated buffers in `.bss` section with careful bounds checking
+
+### 🔁 5. Register Management in Complex Functions
+
+**Issue**: Register conflicts in nested function calls with multiple parameters
+**Solution**: Systematic push/pop of registers with clear register allocation strategy
 
 ---
 
-## 🚧 Project Challenges and Solutions
+## 🎓 Educational Value
 
-### ⚠️ 1. Command Parsing Complexity
+This project demonstrates mastery of:
 
-**Issue**: Token-based parsing broke with multi-word inputs
-**Fix**: Switched to two-tier system (direct + token parsing)
+* **Low-level Programming**: Direct memory manipulation and system calls
+* **Algorithm Implementation**: Cryptographic and analytical algorithms in assembly
+* **Data Structures**: Array operations and string processing
+* **Input/Output Handling**: Robust user interaction and error handling
+* **Code Organization**: Modular design with clear separation of concerns
+* **Performance Optimization**: Efficient assembly code without high-level abstractions
 
-### 🧠 2. Memory Management
-
-**Issue**: Buffer overflows during string handling
-**Fix**: Bounds checking and null termination everywhere
-
-### 🔁 3. Register Conflicts
-
-**Issue**: `mul` instruction register constraints
-**Fix**: Careful register allocation and reuse
-
-
+The implementation showcases the ability to create complex, interactive applications using only ARM32 assembly language, demonstrating deep understanding of computer architecture and systems programming principles.
